@@ -30,9 +30,9 @@ class HeadhunterVacancy:
 				return city["id"]
 
 	@property
-	def get_json(self):
+	def get_company_id(self):
 		"""
-		Функция получения id работодателя на платформе headhunter
+		Функция получения id работодателя на платформе headhunter из файла
 		:return: list
 		"""
 		company_id_list = []
@@ -42,24 +42,48 @@ class HeadhunterVacancy:
 				company_id_list.append(item['id'])
 		return company_id_list
 
+	@property
+	def get_json_name(self):
+		"""
+		Функция получения id работодателя на платформе headhunter из файла
+		:return: list
+		"""
+		company_name_list = []
+		with open(self.company_id, 'r', encoding='utf-8') as file:
+			company_json = json.load(file)
+			for item in company_json:
+				company_name_list.append(item['name'])
+		return company_name_list
+
 	def company_information(self):
 		"""
 		Функция получения всех данных о работодателях
 		:return: list
 		"""
 		company_info = []
-		for item in self.get_json:
-			hh_areas_url = self.HH_COMPANY + "{item}"
+		company_info_shorten = []
+		for item in self.get_company_id:
+			hh_areas_url = f'https://api.hh.ru/employers/{item}'
 			response = requests.get(hh_areas_url)
 			info_company = response.json()
-			company_info.append(info_company['name'])
+			company_info.append(info_company)
+		for company in company_info:
+			shorten_items = {
+					"company_id": int(company['id']),
+					"name": company['name'],
+					"url_company": company['site_url'],
+					"url_company_hh": company['alternate_url'],
+					"city": company['area']['name'],
+				}
+			company_info_shorten.append(shorten_items)
 		return company_info
 
 	def get_vacancies(self):
 		"""Получение всех вакансий работодателей"""
 		vacancies_list = []
+		vacancies_shorten = []
 		hh_vac_url = self.HH_URL
-		employee_list = self.get_json
+		employee_list = self.get_company_id
 		for num in range(len(employee_list)):
 			params = {
 					"employer_id": employee_list[num],
@@ -74,14 +98,32 @@ class HeadhunterVacancy:
 					if item["salary"]["from"]:
 						vacancies_list.append(item)
 
-		return vacancies_list
+		for vacancy in vacancies_list:
+			shorten_vacancy = {
+					"name_company": vacancy['employer']['name'],
+					"vacancy_id": int(vacancy['id']),
+					"company_id": vacancy['employer']['id'],
+					"name_vacancy": vacancy['name'],
+					"salary_from": vacancy['salary']['from'],
+					"city": vacancy['area']['name'],
+					"url_vacancy": vacancy['alternate_url'],
+					"schedule": vacancy['schedule']['name'],
+					"experience": vacancy['experience']['name'],
+					"url_company": vacancy['employer']['alternate_url'],
+				}
+			vacancies_shorten.append(shorten_vacancy)
+
+		return vacancies_shorten
 
 
-company_id_add = HeadhunterVacancy("Россия")
-# print(len(company_id.get_vacancies()))
-# pprint(company_id_add.get_vacancies(), indent=2)
+# company_id_add = HeadhunterVacancy("Россия")
+
+# # print(len(company_id.get_vacancies()))
+# # pprint(company_id_add.get_vacancies(), indent=2)
 # company = company_id_add.get_vacancies()
-# pprint(company.get_all_vacancies(2000762), indent=2)
-# print(len(company_id_add.company_information()))
-print(len(company_id_add.get_vacancies()))
-pprint(company_id_add.get_vacancies(), indent=2)
+# # pprint(company.get_all_vacancies(2000762), indent=2)
+# print(len(company_id_add.get_vacancies()))
+
+
+# print(len(company_id_add.get_vacancies()))
+# pprint(company_id_add.get_vacancies(), indent=2)
