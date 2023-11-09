@@ -1,5 +1,4 @@
 import requests
-from pprint import pprint
 import json
 
 
@@ -28,6 +27,19 @@ class HeadhunterVacancy:
 		for city in response.json()["items"]:
 			if city["text"] == self.city_name:
 				return city["id"]
+
+	@property
+	def company_name(self):
+		"""
+		Функция получения id работодателя на платформе headhunter из файла
+		:return: list
+		"""
+		company_list = []
+		with open(self.company_id, 'r', encoding='utf-8') as file:
+			company_json = json.load(file)
+			for item in company_json:
+				company_list.append(item['name'])
+		return company_list
 
 	@property
 	def get_company_id(self):
@@ -76,7 +88,7 @@ class HeadhunterVacancy:
 					"city": company['area']['name'],
 				}
 			company_info_shorten.append(shorten_items)
-		return company_info
+		return company_info_shorten
 
 	def get_vacancies(self):
 		"""Получение всех вакансий работодателей"""
@@ -114,16 +126,3 @@ class HeadhunterVacancy:
 			vacancies_shorten.append(shorten_vacancy)
 
 		return vacancies_shorten
-
-
-# company_id_add = HeadhunterVacancy("Россия")
-
-# # print(len(company_id.get_vacancies()))
-# # pprint(company_id_add.get_vacancies(), indent=2)
-# company = company_id_add.get_vacancies()
-# # pprint(company.get_all_vacancies(2000762), indent=2)
-# print(len(company_id_add.get_vacancies()))
-
-
-# print(len(company_id_add.get_vacancies()))
-# pprint(company_id_add.get_vacancies(), indent=2)
